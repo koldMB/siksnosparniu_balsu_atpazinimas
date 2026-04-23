@@ -12,36 +12,36 @@ if __name__ == '__main__':
     else:
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         
-        # Create window and trackbars
-        cv2.namedWindow('Color Range Finder')
-        cv2.createTrackbar('Lower H', 'Color Range Finder', 0, 180, nothing)
-        cv2.createTrackbar('Lower S', 'Color Range Finder', 0, 255, nothing)
-        cv2.createTrackbar('Lower V', 'Color Range Finder', 0, 255, nothing)
-        cv2.createTrackbar('Upper H', 'Color Range Finder', 180, 180, nothing)
-        cv2.createTrackbar('Upper S', 'Color Range Finder', 255, 255, nothing)
-        cv2.createTrackbar('Upper V', 'Color Range Finder', 255, 255, nothing)
+        # sukuria langą ir trackbarus
+        cv2.namedWindow('Spalvų atrinkimas')
+        cv2.createTrackbar('Zemesnysis H', 'Spalvų atrinkimas', 0, 180, nothing)
+        cv2.createTrackbar('Zemesnysis S', 'Spalvų atrinkimas', 0, 255, nothing)
+        cv2.createTrackbar('Zemesnysis V', 'Spalvų atrinkimas', 0, 255, nothing)
+        cv2.createTrackbar('Aukstesnysis H', 'Spalvų atrinkimas', 180, 180, nothing)
+        cv2.createTrackbar('Aukstesnysis S', 'Spalvų atrinkimas', 255, 255, nothing)
+        cv2.createTrackbar('Aukstesnysis V', 'Spalvų atrinkimas', 255, 255, nothing)
         
         while True:
-            # Get trackbar values
-            l_h = cv2.getTrackbarPos('Lower H', 'Color Range Finder')
-            l_s = cv2.getTrackbarPos('Lower S', 'Color Range Finder')
-            l_v = cv2.getTrackbarPos('Lower V', 'Color Range Finder')
-            u_h = cv2.getTrackbarPos('Upper H', 'Color Range Finder')
-            u_s = cv2.getTrackbarPos('Upper S', 'Color Range Finder')
-            u_v = cv2.getTrackbarPos('Upper V', 'Color Range Finder')
+            # gauna trackbar reikšmes
+            l_h = cv2.getTrackbarPos('Zemesnysis H', 'Spalvų atrinkimas')
+            l_s = cv2.getTrackbarPos('Zemesnysis S', 'Spalvų atrinkimas')
+            l_v = cv2.getTrackbarPos('Zemesnysis V', 'Spalvų atrinkimas')
+            u_h = cv2.getTrackbarPos('Aukstesnysis H', 'Spalvų atrinkimas')
+            u_s = cv2.getTrackbarPos('Aukstesnysis S', 'Spalvų atrinkimas')
+            u_v = cv2.getTrackbarPos('Aukstesnysis V', 'Spalvų atrinkimas')
             
             # Create mask with current ranges
-            lower = np.array([l_h, l_s, l_v])
-            upper = np.array([u_h, u_s, u_v])
-            mask = cv2.inRange(hsv, lower, upper)
+            Zemesnysis = np.array([l_h, l_s, l_v])
+            Aukstesnysis = np.array([u_h, u_s, u_v])
+            mask = cv2.inRange(hsv, Zemesnysis, Aukstesnysis)
             
-            # Show result
-            cv2.imshow('Color Range Finder', mask)
+            # rodyk
+            cv2.imshow('Spalvų atrinkimas', mask)
             
-            # Press ESC to exit and see ranges
+            # esc paspaudus išves
             if cv2.waitKey(1) == 27:
-                print(f"Lower: {[l_h, l_s, l_v]}")
-                print(f"Upper: {[u_h, u_s, u_v]}")
+                print(f"Zemesnysis: {[l_h, l_s, l_v]}")
+                print(f"Aukstesnysis: {[u_h, u_s, u_v]}")
                 break
         
         cv2.destroyAllWindows()
