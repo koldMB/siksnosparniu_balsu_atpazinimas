@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import os
 
+def nothing():
+    pass
+
 def process_vertical_strip_color(image, x, C=0.5):
     height, width, channels = image.shape
     result = image.copy()
@@ -11,7 +14,46 @@ def process_vertical_strip_color(image, x, C=0.5):
             result[y + 1, x, c] = np.clip(result[y + 1, x, c] - result[y, x, c] * C, 0, 255)
 
     return result
+def RaskRibas():
+    img = cv2.imread(os.path.join(os.path.dirname(__file__), "PIPPIP.png"))
+    if img is None:
+        print("Failas neatidarytas")
+    else:
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
+        # sukuria langą ir trackbarus
+        cv2.namedWindow('Spalvų atrinkimas')
+        cv2.createTrackbar('Zemesnysis H', 'Spalvų atrinkimas', 0, 180, nothing)
+        cv2.createTrackbar('Zemesnysis S', 'Spalvų atrinkimas', 0, 255, nothing)
+        cv2.createTrackbar('Zemesnysis V', 'Spalvų atrinkimas', 0, 255, nothing)
+        cv2.createTrackbar('Aukstesnysis H', 'Spalvų atrinkimas', 180, 180, nothing)
+        cv2.createTrackbar('Aukstesnysis S', 'Spalvų atrinkimas', 255, 255, nothing)
+        cv2.createTrackbar('Aukstesnysis V', 'Spalvų atrinkimas', 255, 255, nothing)
+
+        while True:
+            # gauna trackbar reikšmes
+            l_h = cv2.getTrackbarPos('Zemesnysis H', 'Spalvų atrinkimas')
+            l_s = cv2.getTrackbarPos('Zemesnysis S', 'Spalvų atrinkimas')
+            l_v = cv2.getTrackbarPos('Zemesnysis V', 'Spalvų atrinkimas')
+            u_h = cv2.getTrackbarPos('Aukstesnysis H', 'Spalvų atrinkimas')
+            u_s = cv2.getTrackbarPos('Aukstesnysis S', 'Spalvų atrinkimas')
+            u_v = cv2.getTrackbarPos('Aukstesnysis V', 'Spalvų atrinkimas')
+
+            # Create mask with current ranges
+            Zemesnysis = np.array([l_h, l_s, l_v])
+            Aukstesnysis = np.array([u_h, u_s, u_v])
+            mask = cv2.inRange(hsv, Zemesnysis, Aukstesnysis)
+
+            # rodyk
+            cv2.imshow('Spalvų atrinkimas', mask)
+
+            # esc paspaudus išves
+            if cv2.waitKey(1) == 27:
+                print(f"Zemesnysis: {[l_h, l_s, l_v]}")
+                print(f"Aukstesnysis: {[u_h, u_s, u_v]}")
+                break
+
+        cv2.destroyAllWindows()
 
 print ("Visi dydžiai aprašomi pikseliais (px)")
 aukstis = int(input("Aukščio tolerancija (minimalus aukštis kad būtų fiksuojama koordinatės): "))
@@ -28,10 +70,12 @@ else:
     print("Atrinktos ribos: H min=17, S min=0, V min=248, H max=180, S max=184, V max=255")
     manoRibos = input("Įveskite ar norite savo HSV ribų (taip/ne): ")
     if manoRibos.lower() == "taip":
+        RaskRibas()
         h_min = int(input("Įveskite H min: "))
         s_min = int(input("Įveskite S min: "))
         v_min = int(input("Įveskite V min: "))
-        h_max = int(input("Įveskite H max: "))
+        h_max = int(input("Įveskite H max:" \
+        " "))
         s_max = int(input("Įveskite S max: "))
         v_max = int(input("Įveskite V max: "))
         lower = np.array([h_min, s_min, v_min])
