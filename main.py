@@ -14,6 +14,8 @@ def process_vertical_strip_color(image, x, C=0.5):
 
 
 print ("Visi dydžiai aprašomi pikseliais (px)")
+minpavaukstis = int(input("minimalus paveikslėlio aukštis kad būtų fiksuojama koordinatės(ne 0): "))
+maxpavaukstis = int(input("maksimalus paveikslėlio aukštis kad būtų fiksuojama koordinatės: "))
 aukstis = int(input("Aukščio tolerancija (minimalus aukštis kad būtų fiksuojama koordinatės): "))
 ilgis = int(input("Ilgio tolerancija (minimalus rėžio ilgis kad būtų fiksuojama koordinatės (rekomenduojama 3)):"))
 padengimas = int(input("Kiek procentų aukščio ir ilgio turi būti padengta, kad būtų fiksuojama koordinatės (rekomenduojama 80):"))
@@ -46,16 +48,33 @@ else:
     
     # apkarpymas
     height = mask.shape[0]
-    mask_cropped = mask
-    
+    mask_cropped = mask[0:-1][abs(maxpavaukstis-height):height-minpavaukstis]
+
+    # isaugok apkarpta vaizda
+    output_path = os.path.join(os.path.dirname(__file__), "BWlygmuo.png")
+    cv2.imwrite(output_path, mask_cropped)
+
+    #apversti balta i juduo ir juoda i balta, kad likusi dalis kodo veiktu
+
+    for i in range(0, len(mask_cropped)):
+        for j in range(0, len(mask_cropped[i])):
+            if mask_cropped[i][j] == 0:
+                mask_cropped[i][j] =  255
+            else: 
+                mask_cropped[i][j] = 0
+
+    # isaugok invertuota apkarpta vaizda
+    output_path = os.path.join(os.path.dirname(__file__), "BWlygmuo_Inverted.png")
+    cv2.imwrite(output_path, mask_cropped)
+
     # Rasti kontuorus
     contours, _ = cv2.findContours(mask_cropped, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
+
     # Filtruoti kontuorus pagal parametrus
     valid_contours = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        
+
         # Patikrinti aukštį
         if h >= aukstis:
             # Patikrinti ilgį
@@ -68,10 +87,9 @@ else:
                 if coverage >= padengimas:
                     valid_contours.append((x, y, w, h))
     
+    #išrikuoti pagal x, o ne y
+    valid_contours = sorted(valid_contours, key = lambda x: x[0])
+
     print(f"Rasti {len(valid_contours)} atitinkantys regionai:")
     for i, (x, y, w, h) in enumerate(valid_contours):
         print(f"  Regionas {i+1}: x={x}, y={y}, plotis={w}, aukštis={h}")
-    
-    # isaugok apkarpta vaizda
-    output_path = os.path.join(os.path.dirname(__file__), "BWlygmuo.png")
-    cv2.imwrite(output_path, mask_cropped)
