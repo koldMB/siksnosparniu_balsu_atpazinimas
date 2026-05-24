@@ -1,6 +1,0 @@
-nuiima garsa
-Vertikaliai pasiimt rėžį vieno piksekio dydžio
-iš sekančio atimti buvusio verte padanginta iš konstantos C = (0.5?)
-x[i+1] = x[i+1] - x[i] * C
-arba
-x[i+2] = x[i+2] - x[x+1]...x[1] (su atmintimi)
