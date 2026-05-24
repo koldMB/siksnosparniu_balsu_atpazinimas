@@ -1,139 +1,151 @@
-import cv2
-import numpy as np
+import sys
 import os
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from configparser import ConfigParser
+from Balso_Atradimas import *
 
-def nothing():
-    pass
 
-def process_vertical_strip_color(image, x, C=0.5):
-    height, width, channels = image.shape
-    result = image.copy()
+input_path = os.path.join(os.path.dirname(__file__), "Input_Image.png")
 
-    for c in range(channels):
-        for y in range(height - 1):
-            result[y + 1, x, c] = np.clip(result[y + 1, x, c] - result[y, x, c] * C, 0, 255)
+arguments = ConfigParser()
+arguments.read('args.ini')
 
-    return result
-def RaskRibas():
-    img = cv2.imread(os.path.join(os.path.dirname(__file__), "PIPPIP.png"))
-    if img is None:
-        print("Failas neatidarytas")
-    else:
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+class ArgumentWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Isvestis")
+        self.setMinimumSize(480, 360)
+        layout = QVBoxLayout()
 
-        # sukuria langą ir trackbarus
-        cv2.namedWindow('Spalvų atrinkimas')
-        cv2.createTrackbar('Zemesnysis H', 'Spalvų atrinkimas', 0, 180, nothing)
-        cv2.createTrackbar('Zemesnysis S', 'Spalvų atrinkimas', 0, 255, nothing)
-        cv2.createTrackbar('Zemesnysis V', 'Spalvų atrinkimas', 0, 255, nothing)
-        cv2.createTrackbar('Aukstesnysis H', 'Spalvų atrinkimas', 180, 180, nothing)
-        cv2.createTrackbar('Aukstesnysis S', 'Spalvų atrinkimas', 255, 255, nothing)
-        cv2.createTrackbar('Aukstesnysis V', 'Spalvų atrinkimas', 255, 255, nothing)
+        self.warning = QLabel("Aargumentai bus pakeisti tik uždarius šį langą")
+        layout.addWidget(self.warning)
 
-        while True:
-            # gauna trackbar reikšmes
-            l_h = cv2.getTrackbarPos('Zemesnysis H', 'Spalvų atrinkimas')
-            l_s = cv2.getTrackbarPos('Zemesnysis S', 'Spalvų atrinkimas')
-            l_v = cv2.getTrackbarPos('Zemesnysis V', 'Spalvų atrinkimas')
-            u_h = cv2.getTrackbarPos('Aukstesnysis H', 'Spalvų atrinkimas')
-            u_s = cv2.getTrackbarPos('Aukstesnysis S', 'Spalvų atrinkimas')
-            u_v = cv2.getTrackbarPos('Aukstesnysis V', 'Spalvų atrinkimas')
+        self.MinAukstisLabel = QLabel("minimalus paveikslėlio aukštis nuo kurio apdirbamas paveiklsėlis:")
+        self.MinAukstis = QSpinBox(self)
+        self.MinAukstis.setRange(0, 256)
+        self.MinAukstis.setValue(arguments.getint('Arguments', 'MinAukstis'))
+        self.MinAukstis.setSuffix(" px")
+        layout.addWidget(self.MinAukstisLabel)
+        layout.addWidget(self.MinAukstis)
 
-            # Create mask with current ranges
-            Zemesnysis = np.array([l_h, l_s, l_v])
-            Aukstesnysis = np.array([u_h, u_s, u_v])
-            mask = cv2.inRange(hsv, Zemesnysis, Aukstesnysis)
+        self.MaxAukstisLabel = QLabel("maksimalus paveikslėlio aukštis nuo kurio apdirbamas paveiklsėlis (negali būti mažesnis už minimalią vertę):")
+        self.MaxAukstis = QSpinBox(self)
+        self.MaxAukstis.setRange(0, 256)
+        self.MaxAukstis.setValue(arguments.getint('Arguments', 'MaxAukstis'))
+        self.MaxAukstis.setSuffix(" px")
+        layout.addWidget(self.MaxAukstisLabel)
+        layout.addWidget(self.MaxAukstis)
 
-            # rodyk
-            cv2.imshow('Spalvų atrinkimas', mask)
+        self.AukscioTolerancijaLabel = QLabel("Aukščio tolerancija (minimalus aukštis kad būtų fiksuojama koordinatės):")
+        self.AukscioTolerancija = QSpinBox(self)
+        self.AukscioTolerancija.setValue(arguments.getint('Arguments', 'AukscioTolerancija'))
+        self.AukscioTolerancija.setSuffix(" px")
+        layout.addWidget(self.AukscioTolerancijaLabel)
+        layout.addWidget(self.AukscioTolerancija)
 
-            # esc paspaudus išves
-            if cv2.waitKey(1) == 27:
-                print(f"Zemesnysis: {[l_h, l_s, l_v]}")
-                print(f"Aukstesnysis: {[u_h, u_s, u_v]}")
-                break
+        self.IlgioTolerancijaLabel = QLabel("Ilgio tolerancija (minimalus Ilgis kad būtų fiksuojama koordinatės):")
+        self.IlgioTolerancija = QSpinBox(self)
+        self.IlgioTolerancija.setValue(arguments.getint('Arguments', 'IlgioTolerancija'))
+        self.IlgioTolerancija.setSuffix(" px")
+        layout.addWidget(self.IlgioTolerancijaLabel)
+        layout.addWidget(self.IlgioTolerancija)
 
-        cv2.destroyAllWindows()
+        self.PlocioTolerancijaLabel = QLabel("Kiek procentų pločio turi būti padengta, kad nebebūtų fiksuojamos koordinatės")
+        self.PlocioTolerancija = QSpinBox(self)
+        self.PlocioTolerancija.setValue(arguments.getint('Arguments', 'PlocioTolerancija'))
+        self.PlocioTolerancija.setSuffix("%")
+        layout.addWidget(self.PlocioTolerancijaLabel)
+        layout.addWidget(self.PlocioTolerancija)
 
-print ("Visi dydžiai aprašomi pikseliais (px)")
-minpavaukstis = int(input("minimalus paveikslėlio aukštis kad būtų fiksuojama koordinatės(ne 0): "))
-maxpavaukstis = int(input("maksimalus paveikslėlio aukštis kad būtų fiksuojama koordinatės: "))
-aukstis = int(input("Aukščio tolerancija (minimalus aukštis kad būtų fiksuojama koordinatės): "))
-ilgis = int(input("Ilgio tolerancija (minimalus rėžio ilgis kad būtų fiksuojama koordinatės (rekomenduojama 3)):"))
-padengimas = int(input("Kiek procentų aukščio ir ilgio turi būti padengta, kad būtų fiksuojama koordinatės (rekomenduojama 80):"))
-garsas = int(input("Garso tolerancija (atstumas kiek po yra ignoruojama kiti rėžiai):"))
-img = cv2.imread(os.path.join(os.path.dirname(__file__), "PIPPIP.png"))
-if img is None:
-    print("Failas neatidarytas")
-else:
-    # Vertimas į HSV spalvų erdvę
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # Pagal ribas nustatome, kokias spalvas norime aptikti
-    print("Atrinktos ribos: H min=17, S min=0, V min=248, H max=180, S max=184, V max=255")
-    manoRibos = input("Įveskite ar norite savo HSV ribų (taip/ne): ")
-    if manoRibos.lower() == "taip":
-        RaskRibas()
-        h_min = int(input("Įveskite H min: "))
-        s_min = int(input("Įveskite S min: "))
-        v_min = int(input("Įveskite V min: "))
-        h_max = int(input("Įveskite H max:" \
-        " "))
-        s_max = int(input("Įveskite S max: "))
-        v_max = int(input("Įveskite V max: "))
-        lower = np.array([h_min, s_min, v_min])
-        upper = np.array([h_max, s_max, v_max])
-    else:
-        print("Naudojamos numatytos ribos")
-        lower = np.array([17, 0, 248])
-        upper = np.array([180, 184, 255])
+        self.setLayout(layout)
+    def closeEvent(self, event):
+        arguments.set('Arguments', 'MinAukstis', str(self.MinAukstis.value()))
+        arguments.set('Arguments', 'MaxAukstis', str(self.MaxAukstis.value()))
+        arguments.set('Arguments', 'AukscioTolerancija', str(self.AukscioTolerancija.value()))
+        arguments.set('Arguments', 'IlgioTolerancija', str(self.IlgioTolerancija.value()))
+        arguments.set('Arguments', 'PlocioTolerancija', str(self.PlocioTolerancija.value()))
+        with open('args.ini', 'w') as args:
+            arguments.write(args)
+        event.accept
+
+class Error_NoImage(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Įvyko klaida")
+        self.setMinimumSize(480, 360)
+
+        layout = QVBoxLayout()
+        self.ErrorLabel = QLabel("Įvyko klaida, nerastas paveikslėlis")
+        layout.addWidget(self.ErrorLabel)
+        self.setLayout(layout)
+
+class OutputWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Isvestis")
+        self.setMinimumSize(480, 360)
+
+        self.ImageLabel = QLabel(self)
+        self.ImageLabel.setMinimumSize(480, 360)
+        self.refreshtimer = QTimer(self)
+        self.refreshtimer.timeout.connect(self.refresh_image)
+        self.refreshtimer.start(1000)
+        self.refresh_image()
+        
+    def refresh_image(self):
+        self.OutputImage = QPixmap(os.path.join(os.path.dirname(__file__), "BWlygmuo.png"))
+        self.ImageLabel.setPixmap(self.OutputImage)
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("siksnosparniu balsu atpazinimas")
+        self.setMinimumSize(640, 480)
+        self.ArgWindow = ArgumentWindow()
+        self.OutWindow = OutputWindow()
+        self.ErrorWindow = None
+        Toolbar = QToolBar("Main Toolbar")
+        self.addToolBar(Toolbar)
+        Toolbar_Argument_Button = QAction("Argumentai", self)
+        Toolbar_Argument_Button.triggered.connect(self.Show_Argument_window)
+        Toolbar.addAction(Toolbar_Argument_Button)
+
+        Toolbar_Output_Button = QAction("Ribu Radimas", self)
+        Toolbar_Output_Button.triggered.connect(self.Ribu_Radimas)
+        Toolbar.addAction(Toolbar_Output_Button)
+
+        Toolbar_Output_Button = QAction("Isvestis", self)
+        Toolbar_Output_Button.triggered.connect(self.Show_Output_window)
+        Toolbar.addAction(Toolbar_Output_Button)
+
+
+
+        ImageLabel = QLabel(self)
+        InputImage = QPixmap(input_path)
+        ImageLabel.setPixmap(InputImage)
+        self.setCentralWidget(ImageLabel)
+    def Show_Error_Window(self):
+        self.ErrorWindow = Error_NoImage()
+        self.ErrorWindow.show()
+
+    def Show_Argument_window(self, checked):
+        self.ArgWindow.show()
     
-    # lygmuo
-    mask = cv2.inRange(hsv, lower, upper)
+    def Show_Output_window(self, checked):
+        output = Balsu_atpazinimas(input_path)
+        if output == -1:
+            self.Show_Error_Window()
+        else:
+            self.OutWindow.show()
     
-    # apkarpymas
-    height = mask.shape[0]
-    mask_cropped = mask[0:-1][abs(maxpavaukstis-height):height-minpavaukstis]
+    def Ribu_Radimas(self, checked):
+        output = RaskRibas(input_path)
+        if output == -1:
+            self.Show_Error_Window()
 
-    # isaugok apkarpta vaizda
-    output_path = os.path.join(os.path.dirname(__file__), "BWlygmuo.png")
-    cv2.imwrite(output_path, mask_cropped)
-
-    #apversti balta i juduo ir juoda i balta, kad likusi dalis kodo veiktu
-
-    for i in range(0, len(mask_cropped)):
-        for j in range(0, len(mask_cropped[i])):
-            if mask_cropped[i][j] == 0:
-                mask_cropped[i][j] =  255
-            else: 
-                mask_cropped[i][j] = 0
-
-    # isaugok invertuota apkarpta vaizda
-    output_path = os.path.join(os.path.dirname(__file__), "BWlygmuo_Inverted.png")
-    cv2.imwrite(output_path, mask_cropped)
-
-    # Rasti kontuorus
-    contours, _ = cv2.findContours(mask_cropped, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Filtruoti kontuorus pagal parametrus
-    valid_contours = []
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-
-        # Patikrinti aukštį
-        if h >= aukstis:
-            # Patikrinti ilgį
-            if w >= ilgis:
-                # Patikrinti padengimą (area / bounding_rect)
-                area = cv2.contourArea(contour)
-                rect_area = w * h
-                coverage = (area / rect_area) * 100 if rect_area > 0 else 0
-                
-                if coverage >= padengimas:
-                    valid_contours.append((x, y, w, h))
-    
-    #išrikuoti pagal x, o ne y
-    valid_contours = sorted(valid_contours, key = lambda x: x[0])
-
-    print(f"Rasti {len(valid_contours)} atitinkantys regionai:")
-    for i, (x, y, w, h) in enumerate(valid_contours):
-        print(f"  Regionas {i+1}: x={x}, y={y}, plotis={w}, aukštis={h}")
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+app.exec()
