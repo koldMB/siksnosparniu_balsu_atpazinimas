@@ -12,3 +12,4 @@ idea/
 *.pyc
 output.txt
 *.png
+args.ini
