@@ -1,4 +1,20 @@
+import subprocess
 import sys
+
+# Auto-install missing dependencies
+required_packages = {
+    'cv2': 'opencv-python',
+    'numpy': 'numpy',
+    'PyQt5': 'PyQt5'
+}
+
+for module, package in required_packages.items():
+    try:
+        __import__(module)
+    except ImportError:
+        print(f"Installing {package}...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 import os
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
