@@ -67,34 +67,19 @@ class ArgumentWindow(QWidget):
         layout.addWidget(self.MaxAukstisLabel)
         layout.addWidget(self.MaxAukstis)
 
-        self.AukscioTolerancijaLabel = QLabel("Aukščio tolerancija (minimalus aukštis kad būtų fiksuojama koordinatės):")
-        self.AukscioTolerancija = QSpinBox(self)
-        self.AukscioTolerancija.setValue(arguments.getint('Arguments', 'AukscioTolerancija'))
-        self.AukscioTolerancija.setSuffix(" px")
-        layout.addWidget(self.AukscioTolerancijaLabel)
-        layout.addWidget(self.AukscioTolerancija)
+        self.MinRegionoDydisLabel = QLabel("Minimalus regiono dydis, kad būtų fiksuojama koordinatės:")
+        self.MinRegionoDydis = QSpinBox(self)
+        self.MinRegionoDydis.setValue(arguments.getint('Arguments', 'MinRegionoDydis'))
+        self.MinRegionoDydis.setSuffix(" px")
+        layout.addWidget(self.MinRegionoDydisLabel)
+        layout.addWidget(self.MinRegionoDydis)
 
-        self.IlgioTolerancijaLabel = QLabel("Ilgio tolerancija (minimalus Ilgis kad būtų fiksuojama koordinatės):")
-        self.IlgioTolerancija = QSpinBox(self)
-        self.IlgioTolerancija.setValue(arguments.getint('Arguments', 'IlgioTolerancija'))
-        self.IlgioTolerancija.setSuffix(" px")
-        layout.addWidget(self.IlgioTolerancijaLabel)
-        layout.addWidget(self.IlgioTolerancija)
-
-        self.PlocioTolerancijaLabel = QLabel("Kiek procentų pločio turi būti padengta, kad nebebūtų fiksuojamos koordinatės")
-        self.PlocioTolerancija = QSpinBox(self)
-        self.PlocioTolerancija.setValue(arguments.getint('Arguments', 'PlocioTolerancija'))
-        self.PlocioTolerancija.setSuffix("%")
-        layout.addWidget(self.PlocioTolerancijaLabel)
-        layout.addWidget(self.PlocioTolerancija)
 
         self.setLayout(layout)
     def closeEvent(self, event):
         arguments.set('Arguments', 'MinAukstis', str(self.MinAukstis.value()))
         arguments.set('Arguments', 'MaxAukstis', str(self.MaxAukstis.value()))
-        arguments.set('Arguments', 'AukscioTolerancija', str(self.AukscioTolerancija.value()))
-        arguments.set('Arguments', 'IlgioTolerancija', str(self.IlgioTolerancija.value()))
-        arguments.set('Arguments', 'PlocioTolerancija', str(self.PlocioTolerancija.value()))
+        arguments.set('Arguments', 'AukscioTolerancija', str(self.MinRegionoDydis.value()))
         with open(os.path.join(os.path.dirname(__file__), 'args.ini'), 'w') as args:
             arguments.write(args)
         event.accept

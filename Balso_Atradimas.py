@@ -77,9 +77,12 @@ def Balsu_atpazinimas(img_path):
 
     # Kurti maskę
     mask = cv.inRange(hsv, lower, upper)
-    
+    height = mask.shape[0]
+    mask = mask[0:-1][abs(arguments.getint('Arguments', 'maxaukstis')-height):height-arguments.getint('Arguments', 'minaukstis')]
+
     # Medianinis įtempimas
     mask = cv.medianBlur(mask, 3)
+
     
     # Rasti sujungtas komponentes
     num_labels, labels, stats, centroids = cv.connectedComponentsWithStats(
