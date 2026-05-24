@@ -9,3 +9,6 @@
 # Editor-based HTTP Client requests
 /httpRequests/
 idea/
+*.pyc
+output.txt
+*.png
