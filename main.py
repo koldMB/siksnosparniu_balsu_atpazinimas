@@ -39,7 +39,7 @@ else:
         sys.exit(1)
 
 arguments = ConfigParser()
-arguments.read('args.ini')
+arguments.read(os.path.join(os.path.dirname(__file__), 'args.ini'))
 
 class ArgumentWindow(QWidget):
     def __init__(self):
@@ -95,7 +95,7 @@ class ArgumentWindow(QWidget):
         arguments.set('Arguments', 'AukscioTolerancija', str(self.AukscioTolerancija.value()))
         arguments.set('Arguments', 'IlgioTolerancija', str(self.IlgioTolerancija.value()))
         arguments.set('Arguments', 'PlocioTolerancija', str(self.PlocioTolerancija.value()))
-        with open('args.ini', 'w') as args:
+        with open(os.path.join(os.path.dirname(__file__), 'args.ini'), 'w') as args:
             arguments.write(args)
         event.accept
 

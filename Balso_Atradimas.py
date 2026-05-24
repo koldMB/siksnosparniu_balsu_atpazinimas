@@ -9,7 +9,7 @@ def nothing():
 
 def RaskRibas(img_path):
     arguments = ConfigParser()
-    arguments.read('args.ini')
+    arguments.read(os.path.join(os.path.dirname(__file__), 'args.ini'))
     img = cv.imread(img_path)
     if img is None:
         return -1
@@ -63,7 +63,7 @@ def RaskRibas(img_path):
 
 def Balsu_atpazinimas(img_path):
     arguments = ConfigParser()
-    arguments.read('args.ini')
+    arguments.read(os.path.join(os.path.dirname(__file__), 'args.ini'))
     img = cv.imread(img_path)
     if img is None:
         return -1
