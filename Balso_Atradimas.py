@@ -98,10 +98,6 @@ def Balsu_atpazinimas(img_path):
             else: 
                 mask_cropped[i][j] = 0
 
-    # isaugok invertuota apkarpta vaizda
-    output_path = os.path.join(os.path.dirname(__file__), "BWlygmuo_Inverted.png")
-    cv.imwrite(output_path, mask_cropped)
-
     # Rasti kontuorus
     contours, _ = cv.findContours(mask_cropped, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
