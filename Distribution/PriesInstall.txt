@@ -1,54 +1,45 @@
-INFO FILE – Bat Call Spectrogram Detector
+INFORMACIJOS FAILAS – Echolokacijos šūksnių atpažinimas
 
-1. PURPOSE
-This software processes spectrogram images and extracts bat call events. It identifies narrow vertical or diagonal streaks representing bat vocalizations and outputs their coordinates.
+1. PASKIRTIS
+Ši programa apdoroja spektrogramų nuotraukas ir išgauna šikšnosparnių balsų signalus.
 
-2. INPUT REQUIREMENTS
-- Input: spectrogram image (PNG/JPG/BMP)
-- Image must represent time (x-axis) and frequency (y-axis)
-- Bat calls appear as:
-  - thin vertical lines
-  - or downward-slanted streaks
-  - often higher contrast than background noise
+2. SISTEMOS REIKALAVIMAI
+- Windows 7 ar naujesnė versija (64-bitų)
+- Jokia papildoma programinė įranga nereikalinga (visos priklausomybės įtrauktos į išoriniame faile)
 
-3. OUTPUT
-- List of detected bat call coordinates:
-  format: (x, y, width, height)
-- Each entry represents one detected call region
+3. Quick start 
+- Atsisiųsti: Sikusnosparniu_Balsu_Atpazinimas.exe
+- Dukart spustelėti norėdami paleisti (arba nurodykite vaizdo kelią kaip argumentą)
+- Pasirinkti vaizdą, kai bus paprašyta (PNG/JPG/BMP)
+- Naudoti GUI mygtukus konfigūracijai ir apdorojimui
 
-4. INSTALLATION REQUIREMENTS
-- Python 3.8+
-- Recommended libraries:
-  - opencv-python
-  - numpy
+4. ĮVESTIES REIKALAVIMAI
+- Įvestis: spektrogramos vaizdas (PNG/JPG/BMP)
+- Vaizdas turi atvaizduoti laiką (x ašis) ir dažnį (y ašis)
+- Šikšnosparnių balsai pasirodo kaip aukštesnio kontrasto regionai
 
-Install dependencies:
-pip install opencv-python numpy
+5. IŠVESTIS
+- Dvejetainio kaukės vaizdas: BWlygmuo.png
+- Aptiktų regionų sąrašas su koordinatėmis:
+  formatas: (x, y, plotis, aukštis)
+- Tekstinis failas: output.txt su visomis regionų koordinatėmis, išrūšiuotomis pagal x padėtį
 
-5. USAGE
-Run the main script:
-python main.py --input spectrogram.png
+6. ALGORITMO APŽVALGA
+- HSV spalvų erdvės konvertavimas
+- Spalvomis paremtas slenkstis (reguliuojamas per GUI)
+- Medianinis blur filtravimas triukšmui sumažinti
+- Sujungtų komponentų analizė 
+- Regionų filtravimas pagal:
+  - Minimalus dydis (konfiguruojamas)
+  - Pernelyg didelių regionų (>90% vaizdo) pašalinimas
+- Rezultatai išrūšiuoti pagal x koordinatę
 
-Optional parameters:
---threshold : detection sensitivity
---min-size  : minimum region size filter
---debug     : show intermediate processing steps
+7. KONFIGŪRACIJA
+- Parametrai saugomi: args.ini
+- Gali būti keičiami per GUI arba redaguojami tiesiogiai
+- Nustatymai išlieka tarp sesijų
 
-6. ALGORITHM OVERVIEW
-- Convert image to grayscale
-- Apply contrast enhancement (optional CLAHE)
-- Threshold to isolate high-intensity regions
-- Morphological filtering to remove noise
-- Edge or line enhancement (Sobel / morphological gradients)
-- Connected component analysis
-- Filter components by:
-  - aspect ratio (thin vertical/diagonal shapes)
-  - minimum size
-  - intensity consistency
-
-7. LICENSE
-MIT License or BSD-3-Clause compatible distribution required.
-
-8. NOTES
-- Works best on clean spectrograms with minimal overlapping noise
-- Strong background noise may require tuning threshold and filters
+8. PYTHON ŠALTINIS (plėtrai)
+- Python 3.13+
+- Reikalingas bibliotekos: opencv-python, numpy, PyQt5
+- Automatiškai instaliuoja trūkstamas priklausomybes pirmą kartą
