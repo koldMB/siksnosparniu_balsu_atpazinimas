@@ -2,120 +2,135 @@ import cv2
 import numpy as np
 import os
 
-def nothing():
+
+def nothing(x):
     pass
 
-def process_vertical_strip_color(image, x, C=0.5):
-    height, width, channels = image.shape
-    result = image.copy()
 
-    for c in range(channels):
-        for y in range(height - 1):
-            result[y + 1, x, c] = np.clip(result[y + 1, x, c] - result[y, x, c] * C, 0, 255)
+def get_input_with_default(text, default):
+    value = input(f"{text} [{default}]: ").strip()
+    if value == "":
+        return default
+    return int(value)
 
-    return result
-def RaskRibas():
-    img = cv2.imread(os.path.join(os.path.dirname(__file__), "PIPPIP.png"))
-    if img is None:
-        print("Failas neatidarytas")
-    else:
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # sukuria langą ir trackbarus
-        cv2.namedWindow('Spalvų atrinkimas')
-        cv2.createTrackbar('Zemesnysis H', 'Spalvų atrinkimas', 0, 180, nothing)
-        cv2.createTrackbar('Zemesnysis S', 'Spalvų atrinkimas', 0, 255, nothing)
-        cv2.createTrackbar('Zemesnysis V', 'Spalvų atrinkimas', 0, 255, nothing)
-        cv2.createTrackbar('Aukstesnysis H', 'Spalvų atrinkimas', 180, 180, nothing)
-        cv2.createTrackbar('Aukstesnysis S', 'Spalvų atrinkimas', 255, 255, nothing)
-        cv2.createTrackbar('Aukstesnysis V', 'Spalvų atrinkimas', 255, 255, nothing)
+class ImageViewer:
+    def __init__(self, name, img):
+        self.name = name
+        self.img = img
 
+        cv2.namedWindow(name, cv2.WINDOW_NORMAL)
+
+        cv2.createTrackbar("X", name, 0, img.shape[1], nothing)
+        cv2.createTrackbar("Y", name, 0, img.shape[0], nothing)
+        cv2.createTrackbar("Zoom", name, 10, 50, nothing)
+
+    def show(self):
         while True:
-            # gauna trackbar reikšmes
-            l_h = cv2.getTrackbarPos('Zemesnysis H', 'Spalvų atrinkimas')
-            l_s = cv2.getTrackbarPos('Zemesnysis S', 'Spalvų atrinkimas')
-            l_v = cv2.getTrackbarPos('Zemesnysis V', 'Spalvų atrinkimas')
-            u_h = cv2.getTrackbarPos('Aukstesnysis H', 'Spalvų atrinkimas')
-            u_s = cv2.getTrackbarPos('Aukstesnysis S', 'Spalvų atrinkimas')
-            u_v = cv2.getTrackbarPos('Aukstesnysis V', 'Spalvų atrinkimas')
+            x = cv2.getTrackbarPos("X", self.name)
+            y = cv2.getTrackbarPos("Y", self.name)
+            z = cv2.getTrackbarPos("Zoom", self.name)
 
-            # Create mask with current ranges
-            Zemesnysis = np.array([l_h, l_s, l_v])
-            Aukstesnysis = np.array([u_h, u_s, u_v])
-            mask = cv2.inRange(hsv, Zemesnysis, Aukstesnysis)
+            z = max(1, z) / 10.0
 
-            # rodyk
-            cv2.imshow('Spalvų atrinkimas', mask)
+            h, w = self.img.shape[:2]
 
-            # esc paspaudus išves
-            if cv2.waitKey(1) == 27:
-                print(f"Zemesnysis: {[l_h, l_s, l_v]}")
-                print(f"Aukstesnysis: {[u_h, u_s, u_v]}")
+            vw = max(10, int(w / z))
+            vh = max(10, int(h / z))
+
+            x = min(x, max(0, w - vw))
+            y = min(y, max(0, h - vh))
+
+            view = cv2.resize(self.img[y:y + vh, x:x + vw], (1200, 700))
+
+            cv2.imshow(self.name, view)
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == 27 or key == ord('q'):
                 break
 
-        cv2.destroyAllWindows()
+        cv2.destroyWindow(self.name)
 
-print ("Visi dydžiai aprašomi pikseliais (px)")
-aukstis = int(input("Aukščio tolerancija (minimalus aukštis kad būtų fiksuojama koordinatės): "))
-ilgis = int(input("Ilgio tolerancija (minimalus rėžio ilgis kad būtų fiksuojama koordinatės (rekomenduojama 3)):"))
-padengimas = int(input("Kiek procentų aukščio ir ilgio turi būti padengta, kad būtų fiksuojama koordinatės (rekomenduojama 80):"))
-garsas = int(input("Garso tolerancija (atstumas kiek po yra ignoruojama kiti rėžiai):"))
+
+def select_hsv(hsv):
+    cv2.namedWindow("HSV SELECTOR")
+
+    cv2.createTrackbar("L H", "HSV SELECTOR", 0, 180, nothing)
+    cv2.createTrackbar("L S", "HSV SELECTOR", 0, 255, nothing)
+    cv2.createTrackbar("L V", "HSV SELECTOR", 0, 255, nothing)
+
+    cv2.createTrackbar("U H", "HSV SELECTOR", 180, 180, nothing)
+    cv2.createTrackbar("U S", "HSV SELECTOR", 255, 255, nothing)
+    cv2.createTrackbar("U V", "HSV SELECTOR", 255, 255, nothing)
+
+    while True:
+        lh = cv2.getTrackbarPos("L H", "HSV SELECTOR")
+        ls = cv2.getTrackbarPos("L S", "HSV SELECTOR")
+        lv = cv2.getTrackbarPos("L V", "HSV SELECTOR")
+
+        uh = cv2.getTrackbarPos("U H", "HSV SELECTOR")
+        us = cv2.getTrackbarPos("U S", "HSV SELECTOR")
+        uv = cv2.getTrackbarPos("U V", "HSV SELECTOR")
+
+        lower = np.array([lh, ls, lv])
+        upper = np.array([uh, us, uv])
+
+        mask = cv2.inRange(hsv, lower, upper)
+        cv2.imshow("HSV SELECTOR", mask)
+
+        if cv2.waitKey(1) == 27:
+            cv2.destroyAllWindows()
+            return lower, upper
+
+
+print("INPUT VALUES")
+
+min_region_size = get_input_with_default("Min region size", 2)
+
 img = cv2.imread(os.path.join(os.path.dirname(__file__), "PIPPIP.png"))
+
 if img is None:
-    print("Failas neatidarytas")
+    print("Image not found")
+    exit()
+
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+use_custom = input("Use HSV selector? (taip/ne): ").strip().lower()
+
+if use_custom == "taip":
+    lower, upper = select_hsv(hsv)
 else:
-    # Vertimas į HSV spalvų erdvę
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # Pagal ribas nustatome, kokias spalvas norime aptikti
-    print("Atrinktos ribos: H min=17, S min=0, V min=248, H max=180, S max=184, V max=255")
-    manoRibos = input("Įveskite ar norite savo HSV ribų (taip/ne): ")
-    if manoRibos.lower() == "taip":
-        RaskRibas()
-        h_min = int(input("Įveskite H min: "))
-        s_min = int(input("Įveskite S min: "))
-        v_min = int(input("Įveskite V min: "))
-        h_max = int(input("Įveskite H max:" \
-        " "))
-        s_max = int(input("Įveskite S max: "))
-        v_max = int(input("Įveskite V max: "))
-        lower = np.array([h_min, s_min, v_min])
-        upper = np.array([h_max, s_max, v_max])
-    else:
-        print("Naudojamos numatytos ribos")
-        lower = np.array([17, 0, 248])
-        upper = np.array([180, 184, 255])
-    
-    # lygmuo
-    mask = cv2.inRange(hsv, lower, upper)
-    
-    # apkarpymas
-    height = mask.shape[0]
-    mask_cropped = mask
-    
-    # Rasti kontuorus
-    contours, _ = cv2.findContours(mask_cropped, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    # Filtruoti kontuorus pagal parametrus
-    valid_contours = []
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        
-        # Patikrinti aukštį
-        if h >= aukstis:
-            # Patikrinti ilgį
-            if w >= ilgis:
-                # Patikrinti padengimą (area / bounding_rect)
-                area = cv2.contourArea(contour)
-                rect_area = w * h
-                coverage = (area / rect_area) * 100 if rect_area > 0 else 0
-                
-                if coverage >= padengimas:
-                    valid_contours.append((x, y, w, h))
-    
-    print(f"Rasti {len(valid_contours)} atitinkantys regionai:")
-    for i, (x, y, w, h) in enumerate(valid_contours):
-        print(f"  Regionas {i+1}: x={x}, y={y}, plotis={w}, aukštis={h}")
-    
-    # isaugok apkarpta vaizda
-    output_path = os.path.join(os.path.dirname(__file__), "BWlygmuo.png")
-    cv2.imwrite(output_path, mask_cropped)
+    lower = np.array([17, 0, 248])
+    upper = np.array([180, 184, 255])
+
+mask = cv2.inRange(hsv, lower, upper)
+
+mask = cv2.medianBlur(mask, 3)
+
+num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(
+    mask, connectivity=8
+)
+
+h, w = mask.shape
+
+regions = []
+
+for i in range(1, num_labels):
+    x, y, ww, hh, area = stats[i]
+
+    if area < min_region_size:
+        continue
+
+    if ww > 0.9 * w and hh > 0.9 * h:
+        continue
+
+    regions.append((x, y, ww, hh))
+
+print(f"Regions: {len(regions)}")
+
+for i, (x, y, ww, hh) in enumerate(regions):
+    print(f"{i+1}: x={x}, y={y}, w={ww}, h={hh}")
+
+cv2.imwrite("BW.png", mask)
+
+ImageViewer("BW", mask).show()
