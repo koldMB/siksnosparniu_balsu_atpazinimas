@@ -1,0 +1,36 @@
+USAGE INSTRUCTIONS
+
+1. RUNNING THE PROGRAM
+- Double-click the .exe file or run from terminal.
+- Ensure PIPPIP.png is in the same folder as the executable.
+
+2. IMAGE LOADING
+- The program automatically loads PIPPIP.png on startup.
+- If the image is missing, the program will exit.
+
+3. HSV SELECTION (OPTIONAL)
+- When prompted, type 'taip' to manually select HSV ranges.
+- A window will open with trackbars:
+  - L H, L S, L V = lower HSV bounds
+  - U H, U S, U V = upper HSV bounds
+- Adjust sliders until the mask highlights desired regions.
+- Press ESC to confirm selection.
+
+4. BW VIEWER
+- The BW window shows the thresholded mask.
+- You can:
+  - Move X/Y sliders to pan
+  - Adjust Zoom slider to zoom in/out
+  - Move mouse over image to see coordinates
+
+5. EXITING
+- Press ESC or Q to close any viewer window.
+
+6. OUTPUT FILES
+- BW.png: binary mask output used for detection
+- No final result window is shown (BW only workflow)
+
+7. TROUBLESHOOTING
+- If everything is black: adjust threshold or HSV range
+- If only one region appears: HSV range is too broad
+- If image does not load: check file path and name

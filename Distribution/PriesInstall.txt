@@ -1,0 +1,54 @@
+INFO FILE – Bat Call Spectrogram Detector
+
+1. PURPOSE
+This software processes spectrogram images and extracts bat call events. It identifies narrow vertical or diagonal streaks representing bat vocalizations and outputs their coordinates.
+
+2. INPUT REQUIREMENTS
+- Input: spectrogram image (PNG/JPG/BMP)
+- Image must represent time (x-axis) and frequency (y-axis)
+- Bat calls appear as:
+  - thin vertical lines
+  - or downward-slanted streaks
+  - often higher contrast than background noise
+
+3. OUTPUT
+- List of detected bat call coordinates:
+  format: (x, y, width, height)
+- Each entry represents one detected call region
+
+4. INSTALLATION REQUIREMENTS
+- Python 3.8+
+- Recommended libraries:
+  - opencv-python
+  - numpy
+
+Install dependencies:
+pip install opencv-python numpy
+
+5. USAGE
+Run the main script:
+python main.py --input spectrogram.png
+
+Optional parameters:
+--threshold : detection sensitivity
+--min-size  : minimum region size filter
+--debug     : show intermediate processing steps
+
+6. ALGORITHM OVERVIEW
+- Convert image to grayscale
+- Apply contrast enhancement (optional CLAHE)
+- Threshold to isolate high-intensity regions
+- Morphological filtering to remove noise
+- Edge or line enhancement (Sobel / morphological gradients)
+- Connected component analysis
+- Filter components by:
+  - aspect ratio (thin vertical/diagonal shapes)
+  - minimum size
+  - intensity consistency
+
+7. LICENSE
+MIT License or BSD-3-Clause compatible distribution required.
+
+8. NOTES
+- Works best on clean spectrograms with minimal overlapping noise
+- Strong background noise may require tuning threshold and filters
